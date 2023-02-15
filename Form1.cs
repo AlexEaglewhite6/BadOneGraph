@@ -17,7 +17,8 @@ namespace NIceOneGraph
         Graphics g;
         Bitmap bmp;
         Pen p;
-        Brush b;
+        Brush b1, b2;
+        Font f;
         string mode;
         bool isClicked, isFrom;
         Vertex Displacemented, from, to;
@@ -39,10 +40,13 @@ namespace NIceOneGraph
             g = Graphics.FromImage(bmp);
             mode = "Displacement";
             p = new Pen(Color.Red);
-            b = new SolidBrush(Color.Red);
+            b1 = new SolidBrush(Color.Red);
+            b2 = new SolidBrush(Color.Black);
+            f = new Font("Arial", 14);
             isClicked = false;
             isFrom = true;
             Displacemented = null;
+            textBox1.Text = "1";
         }
 
         public void draw()
@@ -51,7 +55,7 @@ namespace NIceOneGraph
             foreach (Vertex v in vertices.Values)
             {
                 
-                g.FillEllipse(b, v.Coords.X - 25, v.Coords.Y - 25, 50, 50);
+                g.FillEllipse(b1, v.Coords.X - 25, v.Coords.Y - 25, 50, 50);
                 pictureBox1.Image = bmp;
             }
             foreach(var e in edges)
@@ -59,6 +63,11 @@ namespace NIceOneGraph
                 Point p1 = new Point(e.From.Coords.X, e.From.Coords.Y);
                 Point p2 = new Point(e.To.Coords.X, e.To.Coords.Y);
                 g.DrawLine(p, p1, p2);
+                if(e.Weight != null)
+                {
+                    Point p = new Point((p1.X + p2.X)/2,( p1.Y + p2.Y)/2);
+                    g.DrawString(e.Weight.ToString(), f, b2,p);
+                }
             }
         }
 
@@ -113,6 +122,16 @@ namespace NIceOneGraph
                     }
                 }
             }
+            if(mode == "Weight")
+            {
+                foreach(var ed in edges)
+                {
+                    if ((e.X-ed.From.Coords.X)/(ed.To.Coords.X-ed.From.Coords.X) == (e.Y - ed.From.Coords.Y) / (ed.To.Coords.Y - ed.From.Coords.Y))
+                    {
+                        ed.addWeight(Convert.ToInt32(textBox1.Text));
+                    }
+                }
+            }
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
@@ -134,6 +153,11 @@ namespace NIceOneGraph
                 isFrom = false;
                 if(from == null) { isFrom= true; }
             }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            mode = "Weight";
         }
 
         private void button2_Click(object sender, EventArgs e)
