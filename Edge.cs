@@ -15,6 +15,7 @@ namespace NIceOneGraph
         {
             From = from;
             To = to;
+            Weight = 0;
         }
 
         public void addWeight(int weight)

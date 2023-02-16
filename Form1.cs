@@ -24,6 +24,7 @@ namespace NIceOneGraph
         Vertex Displacemented, from, to;
         Dictionary<Point, Vertex> vertices = new Dictionary<Point, Vertex>();
         List<Edge> edges = new List<Edge>();
+        int[,] pathMatrix, shortPathMatrix;
         //Dictionary<Point, int> edges = new Dictionary<Point, int>();
         //
         public Form1()
@@ -39,7 +40,7 @@ namespace NIceOneGraph
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
             g = Graphics.FromImage(bmp);
             mode = "Displacement";
-            p = new Pen(Color.Red);
+            p = new Pen(Color.Red, 2);
             b1 = new SolidBrush(Color.Red);
             b2 = new SolidBrush(Color.Black);
             f = new Font("Arial", 14);
@@ -49,6 +50,57 @@ namespace NIceOneGraph
             textBox1.Text = "1";
         }
 
+        public void fillPathMatrix()
+        {
+            List<Vertex> verticess = vertices.Select(kvp => kvp.Value).ToList();
+            int n = vertices.Count;
+            pathMatrix = new int[n, n];
+            shortPathMatrix = new int[n, n];
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    Vertex iv = verticess[i];
+                    Vertex jv = verticess[j];
+                    foreach (var e in edges)
+                    {
+                        if(i == j)
+                        {
+                            pathMatrix[i, j] = 0;
+                            break;
+                        }
+                        if ((e.From == iv && e.To == jv) || (e.From == jv && e.To == iv))
+                        {
+                            pathMatrix[i, j] = e.Weight;
+                            break;
+                        }
+                        else if (e == edges.Last())
+                        {
+                            pathMatrix[i, j] = 100000;
+                            break;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                }
+            }
+            shortPathMatrix = pathMatrix;
+            for (int k = 0; k < n; ++k)
+            {
+                for (int i = 0; i < n; ++i)
+                {
+                    for (int j = 0; j < n; ++j)
+                    {
+                        if (shortPathMatrix[i, k] + shortPathMatrix[k, j] < shortPathMatrix[i, j])
+                            shortPathMatrix[i, j] = shortPathMatrix[i, k] + shortPathMatrix[k, j];
+                    }
+                }
+            }
+            Console.WriteLine(shortPathMatrix.ToString());
+        }
         public void draw()
         {
             g.Clear(Color.White);
@@ -104,7 +156,6 @@ namespace NIceOneGraph
                 {
                     if (CheckAround(e.X, e.Y, v.Value.Coords.X, v.Value.Coords.Y, 25))
                     {
-                        label3.Text = CheckAround(e.X, e.Y, v.Value.Coords.X, v.Value.Coords.Y, 25).ToString();
                         isClicked = true;
                         if (isFrom)
                         {
@@ -155,6 +206,11 @@ namespace NIceOneGraph
             }
         }
 
+        private void button5_Click(object sender, EventArgs e)
+        {
+            fillPathMatrix();
+        }
+
         private void button4_Click(object sender, EventArgs e)
         {
             mode = "Weight";
@@ -168,8 +224,6 @@ namespace NIceOneGraph
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             label1.Text = $"X: {e.X}; Y: {e.Y}";
-            label2.Text = mode;
-            label4.Text = isFrom.ToString();
             if(mode == "Displacement" && isClicked)
             {
                 Displacemented.Coords.X = e.X;
