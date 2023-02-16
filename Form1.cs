@@ -17,7 +17,7 @@ namespace NIceOneGraph
         Graphics g;
         Bitmap bmp;
         Pen p;
-        Brush b1, b2;
+        Brush b1, b2, b3;
         Font f;
         string mode;
         bool isClicked, isFrom;
@@ -43,6 +43,7 @@ namespace NIceOneGraph
             p = new Pen(Color.Red, 2);
             b1 = new SolidBrush(Color.Red);
             b2 = new SolidBrush(Color.Black);
+            b3 = new SolidBrush(Color.Green);
             f = new Font("Arial", 14);
             isClicked = false;
             isFrom = true;
@@ -99,18 +100,24 @@ namespace NIceOneGraph
                     }
                 }
             }
-            Console.WriteLine(shortPathMatrix.ToString());
+            //Console.WriteLine(shortPathMatrix.ToString());
         }
         public void draw()
         {
             g.Clear(Color.White);
             foreach (Vertex v in vertices.Values)
             {
-                
                 g.FillEllipse(b1, v.Coords.X - 25, v.Coords.Y - 25, 50, 50);
-                pictureBox1.Image = bmp;
             }
-            foreach(var e in edges)
+            foreach (Vertex v in vertices.Values)
+            {
+                if(v == from || v == to)
+                {
+                    g.FillEllipse(b3, v.Coords.X - 25, v.Coords.Y - 25, 50, 50);
+                }
+            }
+            pictureBox1.Image = bmp;
+            foreach (var e in edges)
             {
                 Point p1 = new Point(e.From.Coords.X, e.From.Coords.Y);
                 Point p2 = new Point(e.To.Coords.X, e.To.Coords.Y);
@@ -132,6 +139,14 @@ namespace NIceOneGraph
             mode = "Dots";
         }
 
+        public void CountDistance()
+        {
+            List<Vertex> verticess = vertices.Select(kvp => kvp.Value).ToList();
+            int i = verticess.IndexOf(from);
+            int j = verticess.IndexOf(to);
+            label4.Text = $"Расстояние: {shortPathMatrix[i,j]}";
+            
+        }
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
             if(mode == "Displacement")
@@ -142,7 +157,6 @@ namespace NIceOneGraph
                 {
                     if(CheckAround(current.X, current.Y, v.Value.Coords.X, v.Value.Coords.Y, 25))
                     {
-                        label3.Text = CheckAround(current.X, current.Y, v.Value.Coords.X, v.Value.Coords.Y, 25).ToString();
                         isClicked = true;
                         Displacemented = v.Value;
                         isClicked = true;
@@ -166,6 +180,7 @@ namespace NIceOneGraph
                         {
                             to = v.Value;
                             edges.Add(new Edge(from, to));
+                            draw();
                             from = null; to = null;
                             isFrom= true;
                         }
@@ -183,6 +198,33 @@ namespace NIceOneGraph
                     }
                 }
             }
+            if(mode == "Path")
+            {
+                foreach (var v in vertices)
+                {
+                    if (CheckAround(e.X, e.Y, v.Value.Coords.X, v.Value.Coords.Y, 25))
+                    {
+                        isClicked = true;
+                        if (isFrom)
+                        {
+                            from = null; to = null;
+                            from = v.Value;
+                            label2.Text = $"От: {from.Coords.X}; {from.Coords.Y}";
+                            isFrom = false;
+                        }
+                        else
+                        {
+                            to = v.Value;
+                            label3.Text = $"До: {to.Coords.X}; {to.Coords.Y}";
+                            CountDistance();
+                            draw();
+                            
+                            isFrom = true;
+                        }
+                        break;
+                    }
+                }
+            }
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
@@ -193,21 +235,21 @@ namespace NIceOneGraph
             if(mode == "Dots")
             {
                 Point coord = new Point(e.X, e.Y);
-                
-                //g.FillEllipse(b, e.X-25, e.Y-25, 50, 50);
                 vertices.Add(coord, new Vertex(coord));
                 draw();
-                //pictureBox1.Image = bmp;
             }
             if(mode == "Line")
             {
                 isFrom = false;
                 if(from == null) { isFrom= true; }
             }
+            
         }
 
         private void button5_Click(object sender, EventArgs e)
         {
+            mode = "Path";
+            isFrom = true;
             fillPathMatrix();
         }
 
